@@ -1,3 +1,7 @@
+# Visit the backend for this project: [backend](https://github.com/Acty101/ehs/)!
+
+# Visit the mobile front end for this project: [mobile frontend](https://github.com/shiloh4/medical_adherence)!
+
 # Getting Started with Create React App
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
