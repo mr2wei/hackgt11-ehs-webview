@@ -12,16 +12,37 @@ import { checkLogin } from './utils/api';
 import './App.css';
 
 function App() {
-  const [isPrivileged, setIsPrivileged] = useState(false); // Will be updated by login route when implemented
+  const [isPrivileged, _setIsPrivileged] = useState(false); 
+
+  const setIsPrivileged = (value: any) => {
+    console.log('setIsPrivileged called with:', value);
+    // Optionally, log the call stack to see from where it was called
+    console.trace('setIsPrivileged call stack');
+    _setIsPrivileged(value);
+  };
 
   useEffect(() => {
-    setIsPrivileged(true); // Remove this line when login route is implemented
-    
-    if (window.location.pathname !== '/login') {
-      checkLogin();
-    }
+    const checkLoginStatus = async () => {
+      if (window.location.pathname !== '/login') {
+        const checkRes = await checkLogin();
+        if (checkRes.is_logged_in) {
+          if (checkRes.is_doctor) {
+            setIsPrivileged(true);
+          } else {
+            setIsPrivileged(false);
+          }
+        } else {
+          window.location.href = '/login';
+        }
+      }
+    };
+
+    checkLoginStatus();
   }, []);
 
+  useEffect(() => {
+    console.log(isPrivileged);
+  }, [isPrivileged]);
 
 
   return (
@@ -29,12 +50,11 @@ function App() {
       <Router>
         <Routes>
           <Route path="/" element={<Navigate to="/login" />} />
-          <Route path="/login" element={<Login />} />
+          <Route path="/login" element={<Login setIsPrivileged={setIsPrivileged} />} />
           <Route path="/home" element={<Home isPrivileged={isPrivileged} />} />
-          <Route path="/patient/:patientId" element={<PatientPage />} />
+          <Route path="/patient/:patientId" element={<PatientPage isPrivileged={isPrivileged} />} />
         </Routes>
       </Router>
-      
     </div>
   );
 }

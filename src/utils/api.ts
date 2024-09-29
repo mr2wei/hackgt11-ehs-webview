@@ -1,7 +1,7 @@
 import axios from './axiosConfig';
-import { Patient, PatientSummary, AdherenceTrackingDay, SearchResult, PatientMedicationInfo, AdherenceTrackingAPIResponse, PatientLog, PatientHistory, MedicationSummary } from '../types';
+import { Patient, PatientSummary, AdherenceTrackingDay, SearchResult, PatientMedicationInfo, AdherenceTrackingAPIResponse, PatientLog, PatientHistory, MedicationSummary, loginResponse } from '../types';
 
-export const login = async (username: string, password: string): Promise<boolean> => {
+export const login = async (username: string, password: string): Promise<loginResponse> => {
     try {
         // Convert the payload to URL-encoded form data
         const formData = new URLSearchParams();
@@ -13,23 +13,25 @@ export const login = async (username: string, password: string): Promise<boolean
                 'Content-Type': 'application/x-www-form-urlencoded',
             }
         });
+        console.log(response.data);
         if (response.status === 200){
             // add username to cookie
             document.cookie = `username=${username}`;
         }
-        return response.status === 200;
+        return {is_logged_in: response.status === 200, is_doctor: response.data.is_doctor};
     } catch (error) {
         console.error(error);
-        return false;
+        return {is_logged_in: false, is_doctor: false};
     }
 }
 
-export const checkLogin = async () => {
+export const checkLogin = async () : Promise<loginResponse> => {
     // redirect to login page if not logged in
 
     // if username is not in cookie, redirect to login page
     if (!document.cookie.split('; ').find(row => row.startsWith('username='))) {
-        window.location.href = '/login';
+        // window.location.href = '/login';
+        return {is_logged_in: false, is_doctor: false};
     }
 
     try {
@@ -37,12 +39,15 @@ export const checkLogin = async () => {
         if (!response.data.is_logged_in) {
             console.log(response.data);
             // window.location.href = '/login';
+            return {is_logged_in: false, is_doctor: false};
         } else {
             console.log('Logged in');
+            return {is_logged_in: true, is_doctor: response.data.is_doctor};
         }
     } catch (error) {
         console.error(error);
         // window.location.href = '/login';
+        return {is_logged_in: false, is_doctor: false};
     }
 
     // // do nothing for now
@@ -168,7 +173,7 @@ export const searchPatients = async (name: string): Promise<SearchResult[]> => {
         response.data.forEach((patient: PatientSummary) => {
             patient.dob = new Date(patient.dob);
         });
-        
+
         console.log(response.data);
 
         return response.data.map((patient) => ({
@@ -249,43 +254,43 @@ export const getPatient = async (patientid: string): Promise<Patient | null> => 
 }
 
 export const getPatientAdherence = async (patientid: string): Promise<AdherenceTrackingDay[]> => {
-    try {
-        const response = await axios.get<AdherenceTrackingAPIResponse>(`/adherence/${patientid}`);
-        response.data.adherence.forEach((day: AdherenceTrackingDay) => {
-            day.date = new Date(day.date);
-        });
-        return response.data.adherence;
-    } catch (error) {
-        console.error(error);
-        return [];
-    }
+    // try {
+    //     const response = await axios.get<AdherenceTrackingAPIResponse>(`/adherence/${patientid}`);
+    //     response.data.adherence.forEach((day: AdherenceTrackingDay) => {
+    //         day.date = new Date(day.date);
+    //     });
+    //     return response.data.adherence;
+    // } catch (error) {
+    //     console.error(error);
+    //     return [];
+    // }
 
     // return dummy data for now
-    // return await new Promise<AdherenceTrackingDay[]>((resolve) => {
-    //     setTimeout(() => {
-    //         const adherenceTrackingDays: AdherenceTrackingDay[] = [];
-    //         for (let i = 0; i < 30; i++) {
-    //             adherenceTrackingDays.push({
-    //                 content: [
-    //                     {
-    //                         medication: "Panadol",
-    //                         taken: Math.random() > 0.5
-    //                     },
-    //                     {
-    //                         medication: "Panadol",
-    //                         taken: Math.random() > 0.5
-    //                     },
-    //                     {
-    //                         medication: "Panadol",
-    //                         taken: Math.random() > 0.5
-    //                     }
-    //                 ],
-    //                 date: new Date(new Date().setDate(new Date().getDate() - i))
-    //             });
-    //         }
-    //         resolve(adherenceTrackingDays);
-    //     }, 1200); 
-    // });
+    return await new Promise<AdherenceTrackingDay[]>((resolve) => {
+        setTimeout(() => {
+            const adherenceTrackingDays: AdherenceTrackingDay[] = [];
+            for (let i = 0; i < 30; i++) {
+                adherenceTrackingDays.push({
+                    content: [
+                        {
+                            medication: "Panadol",
+                            taken: Math.random() > 0.5
+                        },
+                        {
+                            medication: "Panadol",
+                            taken: Math.random() > 0.5
+                        },
+                        {
+                            medication: "Panadol",
+                            taken: Math.random() > 0.5
+                        }
+                    ],
+                    date: new Date(new Date().setDate(new Date().getDate() - i))
+                });
+            }
+            resolve(adherenceTrackingDays);
+        }, 300); 
+    });
 }
 
 export const getPatientMedications = async (patientid: string): Promise<PatientMedicationInfo[]> => {
@@ -420,5 +425,37 @@ export const getAvailableMedications = async (): Promise<MedicationSummary[]> =>
     } catch (error) {
         console.error(error);
         return [];
+    }
+}
+
+export const addPatient = async (username: string, patientInfo: Patient): Promise<boolean> => {
+    try {
+        const formData = new FormData();
+        formData.append('username', username);
+        formData.append('name', patientInfo.name);
+        formData.append('dob', patientInfo.dob.toISOString());
+        formData.append('sex', patientInfo.sex);
+        formData.append('height', patientInfo.height.toString());
+        formData.append('weight', patientInfo.weight.toString());
+
+        const response = await axios.post('/add_patient', formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data',
+            }
+        });
+        return response.status === 200;
+    } catch (error) {
+        console.error(error);
+        return false;
+    }
+}
+
+export const setMedicationTaken = async (activeid: number): Promise<boolean> => {
+    try {
+        const response = await axios.post(`/pickup_meds/${activeid}`);
+        return response.status === 200;
+    } catch (error) {
+        console.error(error);
+        return false;
     }
 }

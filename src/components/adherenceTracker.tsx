@@ -94,7 +94,12 @@ function AdherenceTracker({ adherence }: AdherenceTrackerProps) {
                             const { percentage, date, medsMissed } = cellData;
                             const dateString = date.toDateString();
     
-                            return (
+                            return date > new Date() ? (
+                                <div
+                                    key={weekIndex}
+                                    className={`adherence-day future-date`}
+                                ></div>
+                            ) : (
                                 <OverlayTrigger
                                     key={weekIndex}
                                     placement="top"
@@ -115,7 +120,7 @@ function AdherenceTracker({ adherence }: AdherenceTrackerProps) {
                                                 : percentage < 0.66
                                                 ? 'med-adherence'
                                                 : 'high-adherence'
-                                        }`}
+                                        } `}
                                     ></div>
                                 </OverlayTrigger>
                             );

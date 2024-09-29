@@ -3,7 +3,6 @@
     flex-direction: row;
     justify-content: space-between;
     align-items: center;
-    height: 200px;
 }
 
 .adherence-tracker-row {
@@ -35,4 +34,8 @@
 
 .no-data {
     background-color: var(--bs-body-bg);
+}
+
+.future-date {
+    border-color: transparent;
 }

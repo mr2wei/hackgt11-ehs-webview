@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { PlusCircleFill, ArrowUpRightSquareFill } from "react-bootstrap-icons";
 import ListGroup from 'react-bootstrap/ListGroup';
 import Button from 'react-bootstrap/Button';
@@ -8,9 +8,11 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import '../styles/home.css';
 import SearchBox from "../components/search";
 import MiniAdherence from "../components/miniAdherence";
+import AddPatientModal from "../components/addPatientModal";
 
 function Home({ isPrivileged }: { isPrivileged : boolean }) {
-    const [patients, setPatients] = React.useState<PatientSummary[]>([]);
+    const [patients, setPatients] = useState<PatientSummary[]>([]);
+    const [showAddPatientModal, setShowAddPatientModal] = useState(false);
 
     useEffect(() => {
         const fetchPatients = async () => {
@@ -25,9 +27,22 @@ function Home({ isPrivileged }: { isPrivileged : boolean }) {
         console.log(patients);
     }, [patients]);
 
-
     const handleLogout = async () => {
         await logout();
+    };
+
+    const handleAddPatient = () => {
+        setShowAddPatientModal(true);
+    };
+
+    const handleCloseAddPatientModal = () => {
+        setShowAddPatientModal(false);
+    };
+
+    const handlePatientAdded = async () => {
+        setShowAddPatientModal(false);
+        const patients = await getAllPatients();
+        setPatients(patients);
     };
 
     return (
@@ -38,7 +53,7 @@ function Home({ isPrivileged }: { isPrivileged : boolean }) {
             </div>
             <div className="header">
                 <h1>Patients</h1>
-                <Button className="add-patient-button"><PlusCircleFill /></Button>
+                <Button className="add-patient-button" onClick={handleAddPatient}><PlusCircleFill /></Button>
             </div>
             <SearchBox searchFunction={searchPatients} onSelect={(patient) => window.location.href = `/patient/${patient.id}`} />
             {isPrivileged && <ListGroup className="patient-list">
@@ -57,6 +72,11 @@ function Home({ isPrivileged }: { isPrivileged : boolean }) {
                     </ListGroup.Item>
                 ))}
             </ListGroup>}
+            <AddPatientModal 
+                show={showAddPatientModal} 
+                handleClose={handleCloseAddPatientModal} 
+                onPatientAdded={handlePatientAdded} 
+            />
         </div>
     );
 }

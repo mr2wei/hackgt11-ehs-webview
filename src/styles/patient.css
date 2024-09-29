@@ -43,3 +43,21 @@
     display: flex;
     gap: 10px;
 }
+
+.professional-note-subject {
+    font-size: 1.2rem;
+    font-weight: bold;
+}
+
+.professional-note-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: hsl(0, 0%, 19%, 75%);
+}
+
+.professional-added-notes {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}

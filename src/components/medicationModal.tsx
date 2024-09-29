@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Modal, Button, Form, Row, Col } from 'react-bootstrap';
 import { MedicationSummary, PatientMedicationInfo } from '../types';
-import { prescribeMedication, getAvailableMedications } from '../utils/api';
+import { prescribeMedication, getAvailableMedications, setMedicationTaken } from '../utils/api';
 
 interface MedicationModalProps {
     show: boolean;
@@ -9,9 +9,10 @@ interface MedicationModalProps {
     patientId: string | undefined;
     medicationInfo: PatientMedicationInfo | null;
     readOnly: boolean;
+    isPrivileged: boolean;
 }
 
-const MedicationModal: React.FC<MedicationModalProps> = ({ show, handleClose, patientId, medicationInfo, readOnly }) => {
+const MedicationModal: React.FC<MedicationModalProps> = ({ show, handleClose, patientId, medicationInfo, readOnly, isPrivileged }) => {
     const [medication, setMedication] = useState<PatientMedicationInfo>({
         activeid: 0,
         name: '',
@@ -66,6 +67,11 @@ const MedicationModal: React.FC<MedicationModalProps> = ({ show, handleClose, pa
 
     const handlePrescribe = async () => {
         await prescribeMedication(patientId, medication);
+        handleClose();
+    }
+
+    const handlePickup = async () => {
+        await setMedicationTaken(medication.activeid);
         handleClose();
     }
 
@@ -177,9 +183,9 @@ const MedicationModal: React.FC<MedicationModalProps> = ({ show, handleClose, pa
                             <Form.Group controlId="medicationDateCollected">
                                 <Form.Label><strong>Date Collected:</strong></Form.Label>
                                 <Form.Control 
-                                    type="date" 
+                                    type={readOnly ? "text" : "date"} 
                                     readOnly={readOnly} 
-                                    value={medication.date_collected ? medication.date_collected.toISOString().substr(0, 10) : ''} 
+                                    value={readOnly ? (medication.date_collected ? medication.date_collected.toLocaleDateString() : 'N/A') : (medication.date_collected ? medication.date_collected.toISOString().split('T')[0] : '')} 
                                     onChange={(e) => handleChange('date_collected', new Date(e.target.value))}
                                 />
                             </Form.Group>
@@ -217,6 +223,11 @@ const MedicationModal: React.FC<MedicationModalProps> = ({ show, handleClose, pa
                 {!readOnly && (
                     <Button variant="primary" onClick={handlePrescribe}>
                         Prescribe
+                    </Button>
+                )}
+                {!isPrivileged && (
+                    <Button variant="primary" onClick={handlePickup}>
+                        Mark as Picked Up
                     </Button>
                 )}
             </Modal.Footer>

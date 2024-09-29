@@ -9,7 +9,7 @@ import AdherenceTracker from "../components/adherenceTracker";
 import MedicationModal from "../components/medicationModal";
 import { PlusCircleFill } from "react-bootstrap-icons";
 
-export default function PatientPage() {
+export default function PatientPage({ isPrivileged }: { isPrivileged: boolean }) {
     const { patientId } = useParams();
 
     const [patient, setPatient] = useState<Patient | null>(null);
@@ -54,8 +54,8 @@ export default function PatientPage() {
             fetchPatient(patientId);
             fetchAdherence(patientId);
             fetchMedications(patientId);
-            fetchPatientLogs(patientId);
-            fetchHistory(patientId);
+            isPrivileged && fetchPatientLogs(patientId);
+            isPrivileged && fetchHistory(patientId);
         }
     }, [patientId]);
 
@@ -104,7 +104,21 @@ export default function PatientPage() {
                         </Form>
                     )}
                 </div>
-                <div className="patient-added-notes patient-info-container">
+                <div className="professional-added-notes patient-info-container">
+                    <h2>Professional Added Notes</h2>
+                    <ListGroup className="patient-view-list">
+                        <ListGroup.Item className="patient-view-container">
+                            <div className="professional-note-subject">Drug does not work on user</div>
+                            <div className="professional-note-footer">
+                                <div className="professional-note-author">Dr. John Doe</div>
+                                <div className="professional-note-date">2024-08-01</div>
+                            </div>
+                        </ListGroup.Item>
+                    </ListGroup>
+                    <Button className="add-note-button">Add Note</Button>
+                </div>
+
+                {isPrivileged && (<div className="patient-added-notes patient-info-container">
                     <h2>Patient Added Notes</h2>
                     <ListGroup className="patient-view-list">
                         {PatientLogs.length === 0 && <div>No patient added logs</div>}
@@ -115,14 +129,14 @@ export default function PatientPage() {
                             </ListGroup.Item>
                         ))}
                     </ListGroup>
-                </div>
+                </div>)}
             </div>
             <div className="half-page-content">
             <div className="adherence-tracker patient-info-container">
                 <h2>Adherence Tracker</h2>
                     <AdherenceTracker adherence={patientAdherence} />
                 </div>
-                <div className="history patient-info-container">
+                {isPrivileged && (<div className="history patient-info-container">
                     <h2>History</h2>
                     <ListGroup className="patient-view-list">
                         {patientHistory.length === 0 && <div>No history</div>}
@@ -133,7 +147,7 @@ export default function PatientPage() {
                             </ListGroup.Item>
                         ))}
                     </ListGroup>
-                </div>
+                </div>)}
                 <div className="active-meds patient-info-container">
                     <h2>Active Medications</h2>
                     <ListGroup className="patient-view-list">
@@ -148,16 +162,17 @@ export default function PatientPage() {
                                 <div className="medication-info">
                                     <div className="medication-name-dosage">{medication.name} - {medication.dosage} mg</div>
                                 </div>
-                                <div className="medication-remaining">Remaining: {medication.remaining_quantity}</div>
+                                {!medication.date_collected && <div className="medication-remaining">To be collected</div>}
+                                {medication.date_collected && <div className="medication-remaining">Remaining: {medication.remaining_quantity}</div>}
                             </ListGroup.Item>
                         ))}
                     </ListGroup>
-                    <Button className="add-medication-button" onClick={() => {
+                    {(isPrivileged && <Button className="add-medication-button" onClick={() => {
                         setSelectedMedication(null);
                         setShowModal(true);
                     }}>
                         <PlusCircleFill /> Add Medication
-                        </Button>
+                    </Button>)}
                 </div>
             </div>
             <MedicationModal 
@@ -166,6 +181,7 @@ export default function PatientPage() {
                 patientId={patientId}
                 medicationInfo={selectedMedication} 
                 readOnly={selectedMedication ? true : false}
+                isPrivileged={isPrivileged}
             />
         </div>
     );

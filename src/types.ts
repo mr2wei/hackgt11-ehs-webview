@@ -1,4 +1,7 @@
-
+export interface loginResponse {
+    is_logged_in: boolean;
+    is_doctor: boolean;
+}
 export interface PatientSummary {
     name: string;
     dob: Date;

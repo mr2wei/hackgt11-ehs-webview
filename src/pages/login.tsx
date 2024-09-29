@@ -1,9 +1,14 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { login } from '../utils/api';
-// import '../styles/login.css';
+import { Form, Button, Alert, Container } from 'react-bootstrap';
+import 'bootstrap/dist/css/bootstrap.min.css';
 
-const Login = () => {
+interface LoginProps {
+    setIsPrivileged: (isPrivileged: boolean) => void;
+}
+
+const Login: React.FC<LoginProps> = ({ setIsPrivileged }) => {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
@@ -11,8 +16,11 @@ const Login = () => {
 
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
-        const isAuthenticated = await login(username, password);
-        if (isAuthenticated) {
+        const loginRes = await login(username, password);
+        if (loginRes.is_logged_in) {
+            if (loginRes.is_doctor) {
+                setIsPrivileged(true);
+            }
             navigate('/home');
         } else {
             setError('Invalid username or password');
@@ -20,33 +28,33 @@ const Login = () => {
     };
 
     return (
-        <div className="login-container">
+        <Container className="login-container">
             <h2>Login</h2>
-            <form onSubmit={handleLogin}>
-                <div className="form-group">
-                    <label htmlFor="username">Username</label>
-                    <input
+            <Form onSubmit={handleLogin}>
+                <Form.Group controlId="username">
+                    <Form.Label>Username</Form.Label>
+                    <Form.Control
                         type="text"
-                        id="username"
                         value={username}
                         onChange={(e) => setUsername(e.target.value)}
                         required
                     />
-                </div>
-                <div className="form-group">
-                    <label htmlFor="password">Password</label>
-                    <input
+                </Form.Group>
+                <Form.Group controlId="password">
+                    <Form.Label>Password</Form.Label>
+                    <Form.Control
                         type="password"
-                        id="password"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         required
                     />
-                </div>
-                {error && <div className="error">{error}</div>}
-                <button type="submit">Login</button>
-            </form>
-        </div>
+                </Form.Group>
+                {error && <Alert variant="danger">{error}</Alert>}
+                <Button variant="primary" type="submit">
+                    Login
+                </Button>
+            </Form>
+        </Container>
     );
 };
 
