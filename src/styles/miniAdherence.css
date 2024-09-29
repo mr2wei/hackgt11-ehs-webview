@@ -1,0 +1,26 @@
+.mini-adherence-tracker {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 10px;
+}
+
+.mini-adherence-day {
+    width: 24px;
+    height: 24px;
+    border-radius: 8px;
+    border: 1px solid #303030;
+}
+
+.low-adherence {
+    background-color: #FF532D;
+}
+
+.med-adherence {
+    background-color: #FFB21D;
+}
+
+.high-adherence {
+    background-color: #00BF2A;
+}
